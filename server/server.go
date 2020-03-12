@@ -4,51 +4,42 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/gin-gonic/gin"
-	"url-shortener-go/shorten"
 )
 
 type Server struct {
-	Router *gin.Engine
-	DB *dynamodb.DynamoDB
+	router *gin.Engine
+	db *dynamodb.DynamoDB
 }
 
-func (Server) GetURL(c *gin.Context){
-	// Retrieve url from database using key
-	// Return long url
-	key := c.Param("key")
-	// Redirect
+func (s Server) GetDB() *dynamodb.DynamoDB {
+	return s.db
 }
 
-func(Server) CreateShortURL(c *gin.Context) {
-	key, err := shorten.CreateKey()
-	if err != nil {
-		c.Errors(err)
-	}
-	// unpack request
-	data, err := c.GetRawData()
-	//store key and url in database
-
+func (s Server) GetRouter() *gin.Engine {
+	return s.router
 }
 
+func (s Server) Run() {
+	s.router.Run()
+}
 
-func Init() {
+func New() *Server {
 	// Create AWS Session
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 
+	// Build Server and DB connection
 	server := Server{
-		Router: gin.Default(),
-		DB: dynamodb.New(sess),
+		router: gin.Default(),
+		db: dynamodb.New(sess),
 	}
 
-	server.Router.GET(	"/:key", server.GetURL)
-	server.Router.POST(	"/", server.CreateShortURL)
+	// Create Routes
+	server.GetRouter().GET("/:key", server.redirectToURL)
+	server.GetRouter().POST("/", server.createShortURL)
 
-	server.Router.Run()
-}
-
-
+	return &server
 }
 
 

@@ -1,14 +1,10 @@
 package main
 
-import (
-	"fmt"
-	"url-shortener-go/shorten"
-)
+import "url-shortener-go/server"
 
 func main() {
-	str, _ := shorten.CreateKey()
-	fmt.Println(str)
-	fmt.Println(len(str))
+	server := server.New()
+	server.Run()
 }
 
 
